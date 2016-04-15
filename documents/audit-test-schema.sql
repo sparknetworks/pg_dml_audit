@@ -4,6 +4,13 @@ DROP TABLE IF EXISTS ae_b;
 DROP TABLE IF EXISTS ae_a;
 
 
+CREATE TABLE tmp.temp_a (
+  a_text    TEXT PRIMARY KEY,
+  a_number  INTEGER,
+  a_decimal DECIMAL
+);
+
+
 CREATE TABLE ae_a (
   a_text    TEXT PRIMARY KEY,
   a_number  INTEGER,

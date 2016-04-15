@@ -3,6 +3,7 @@
 
 set search_path to audit, public;
 
+SELECT audit.watch_table('tmp.temp_a');
 SELECT audit.ignore_table('ae_a');
 SELECT audit.ignore_table('ae_b');
 SELECT audit.ignore_table('ae_c');
@@ -13,7 +14,8 @@ TRUNCATE ae_a CASCADE;
 TRUNCATE ae_b;
 TRUNCATE ae_c;
 
-SELECT audit.watch_table('ae_a');
+SELECT audit.watch_table('tmp.temp_a');
+
 SELECT audit.watch_table('ae_b');
 SELECT audit.watch_table('ae_c');
 

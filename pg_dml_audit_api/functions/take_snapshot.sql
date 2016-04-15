@@ -25,7 +25,6 @@ BEGIN
     query_text = 'SELECT *  FROM ' || quote_ident(audit_row.nspname) || '.' || quote_ident(audit_row.relname);
     FOR anyrow IN EXECUTE query_text LOOP
         all_rows =  all_rows || row_to_json(anyrow);
-        RAISE NOTICE '%', all_rows;
     END LOOP;
     audit_row.rowdata = array_to_json(all_rows);
 
