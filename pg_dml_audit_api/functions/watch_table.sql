@@ -1,6 +1,7 @@
 --
+-- save full tabel as json-array
+set search_path to _pg_dml_audit_api;
 --
--- SET SEARCH_PATH TO audit;
 
 CREATE OR REPLACE FUNCTION watch_table(target_table REGCLASS)
     RETURNS VOID AS $body$

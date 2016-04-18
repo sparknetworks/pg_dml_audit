@@ -1,3 +1,8 @@
+--
+-- save full tabel as json-array
+set search_path to _pg_dml_audit_api;
+--
+
 CREATE OR REPLACE FUNCTION take_snapshot(target_table REGCLASS)
     RETURNS VOID AS $body$
 DECLARE

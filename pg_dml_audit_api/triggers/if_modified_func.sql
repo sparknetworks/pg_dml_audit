@@ -1,3 +1,7 @@
+--
+-- save full tabel as json-array
+set search_path to _pg_dml_audit_api;
+--
 CREATE OR REPLACE FUNCTION if_modified_func()
   RETURNS TRIGGER AS $body$
 DECLARE

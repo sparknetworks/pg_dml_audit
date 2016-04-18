@@ -1,6 +1,7 @@
 --
--- journal of all changes to all auditest tables
---
+-- journal of all changes to all audited tables
+-- set search_path to _pg_dml_audit_model;
+
 CREATE TABLE events (
   nspname   TEXT        NOT NULL,
   relname   TEXT        NOT NULL,

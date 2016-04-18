@@ -1,6 +1,8 @@
 --
--- database operations known to affinitas audit
+-- database operations recognized by audit system
+-- set search_path to _pg_dml_audit_model;
 --
+
 CREATE TYPE op_types AS ENUM ('INSERT', 'UPDATE', 'DELETE', 'TRUNCATE', 'SNAPSHOT' );
 
 COMMENT ON TYPE op_types IS '
