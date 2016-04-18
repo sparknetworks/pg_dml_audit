@@ -12,16 +12,16 @@ BEGIN
     EXECUTE 'DROP TRIGGER IF EXISTS audit_trigger_stm ON ' || target_table;
 
     query_text = 'CREATE TRIGGER audit_trigger_row AFTER INSERT OR UPDATE OR DELETE ON ' || target_table ||
-                 ' FOR EACH ROW EXECUTE PROCEDURE if_modified_func();';
-    RAISE NOTICE '%', query_text;
+                 ' FOR EACH ROW EXECUTE PROCEDURE _pg_dml_audit_api.if_modified_func();';
+    RAISE DEBUG '%', query_text;
     EXECUTE query_text;
 
     query_text = 'CREATE TRIGGER audit_trigger_stm BEFORE TRUNCATE ON ' || target_table ||
-                 ' FOR EACH STATEMENT EXECUTE PROCEDURE if_modified_func();';
-    RAISE NOTICE '%', query_text;
+                 ' FOR EACH STATEMENT EXECUTE PROCEDURE _pg_dml_audit_api.if_modified_func();';
+    RAISE DEBUG '%', query_text;
     EXECUTE query_text;
 
-    PERFORM take_snapshot(target_table);
+    PERFORM _pg_dml_audit_api.take_snapshot(target_table);
 
 END;
 $body$
@@ -33,4 +33,3 @@ Add auditing triggers to a table and take a initial snapshot.
 Arguments:
    target_table:     Table name, schema qualified if not on search_path
 $body$;
-

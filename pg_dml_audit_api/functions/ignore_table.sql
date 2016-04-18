@@ -2,7 +2,7 @@ CREATE OR REPLACE FUNCTION ignore_table(target_table REGCLASS)
     RETURNS VOID AS $body$
 DECLARE
 BEGIN
-    PERFORM take_snapshot(target_table);
+    -- PERFORM take_snapshot(target_table);  -- is it necessary?
     EXECUTE 'DROP TRIGGER IF EXISTS audit_trigger_row ON ' || target_table;
     EXECUTE 'DROP TRIGGER IF EXISTS audit_trigger_stm ON ' || target_table;
 END;

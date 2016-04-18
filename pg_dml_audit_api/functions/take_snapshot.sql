@@ -3,7 +3,7 @@ CREATE OR REPLACE FUNCTION take_snapshot(target_table REGCLASS)
 DECLARE
     all_rows   JSON [] := '{}';
     anyrow     RECORD;
-    audit_row  events;
+    audit_row  _pg_dml_audit_model.events;
     query_text TEXT;
 
 BEGIN
@@ -27,8 +27,8 @@ BEGIN
         all_rows =  all_rows || row_to_json(anyrow);
     END LOOP;
     audit_row.rowdata = array_to_json(all_rows);
-
-    INSERT INTO events VALUES (audit_row.*);
+    RAISE DEBUG 'take a snapshot';
+    INSERT INTO _pg_dml_audit_model.events VALUES (audit_row.*);
 END;
 $body$
 LANGUAGE 'plpgsql';

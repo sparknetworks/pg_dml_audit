@@ -1,7 +1,7 @@
 CREATE OR REPLACE FUNCTION if_modified_func()
   RETURNS TRIGGER AS $body$
 DECLARE
-  audit_row  events;
+  audit_row  _pg_dml_audit_model.events;
   query_text TEXT;
   all_rows   JSON [] := '{}';
   anyrow     RECORD;
@@ -44,7 +44,7 @@ BEGIN
   -- multiple events in the same transaction must be ordered
   LOOP
     BEGIN
-      INSERT INTO events VALUES (audit_row.*);
+      INSERT INTO _pg_dml_audit_model.events VALUES (audit_row.*);
       EXIT; -- successful insert
       EXCEPTION WHEN unique_violation
       THEN
