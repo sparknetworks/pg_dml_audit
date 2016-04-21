@@ -1,39 +1,39 @@
 --
 -- save full tabel as json-array
-set search_path to _pg_dml_audit_api;
+-- set search_path to _pg_dml_audit_api;
 --
 
 CREATE OR REPLACE FUNCTION take_snapshot(target_table REGCLASS)
-    RETURNS VOID AS $body$
+  RETURNS VOID AS $body$
 DECLARE
-    all_rows   JSON [] := '{}';
-    anyrow     RECORD;
-    audit_row  _pg_dml_audit_model.events;
-    query_text TEXT;
+  all_rows   JSON [] := '{}';
+  anyrow     RECORD;
+  audit_row  _pg_dml_audit_model.events;
+  query_text TEXT;
 
 BEGIN
-    audit_row.nspname   := (SELECT nspname
-                            FROM pg_namespace
-                            WHERE OID = (SELECT relnamespace
-                                         FROM pg_class
-                                         WHERE OID = target_table));
-    audit_row.relname   := (SELECT relname
-                            FROM pg_class
-                            WHERE OID = target_table);
-    audit_row.usename   = session_user;
-    audit_row.trans_ts  = transaction_timestamp();
-    audit_row.trans_id  = txid_current();
-    audit_row.trans_sq  = 1;
-    audit_row.operation = 'SNAPSHOT';
-    audit_row.rowdata   = NULL;
+  audit_row.nspname   := (SELECT nspname
+                          FROM pg_namespace
+                          WHERE OID = (SELECT relnamespace
+                                       FROM pg_class
+                                       WHERE OID = target_table));
+  audit_row.relname   := (SELECT relname
+                          FROM pg_class
+                          WHERE OID = target_table);
+  audit_row.usename = session_user;
+  audit_row.trans_ts = transaction_timestamp();
+  audit_row.trans_id = txid_current();
+  audit_row.trans_sq = 1;
+  audit_row.operation = 'SNAPSHOT';
+  audit_row.rowdata = NULL;
 
-    query_text = 'SELECT *  FROM ' || quote_ident(audit_row.nspname) || '.' || quote_ident(audit_row.relname);
-    FOR anyrow IN EXECUTE query_text LOOP
-        all_rows =  all_rows || row_to_json(anyrow);
-    END LOOP;
-    audit_row.rowdata = array_to_json(all_rows);
-    RAISE DEBUG 'take a snapshot';
-    INSERT INTO _pg_dml_audit_model.events VALUES (audit_row.*);
+  query_text = 'SELECT *  FROM ' || quote_ident(audit_row.nspname) || '.' || quote_ident(audit_row.relname);
+  FOR anyrow IN EXECUTE query_text LOOP
+    all_rows = all_rows || row_to_json(anyrow);
+  END LOOP;
+  audit_row.rowdata = array_to_json(all_rows);
+  RAISE DEBUG 'take a snapshot';
+  INSERT INTO _pg_dml_audit_model.events VALUES (audit_row.*);
 END;
 $body$
 LANGUAGE 'plpgsql';

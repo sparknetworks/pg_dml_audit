@@ -1,8 +1,8 @@
 CREATE OR REPLACE FUNCTION report_audit()
-    RETURNS TEXT AS $body$
+  RETURNS TEXT AS $body$
 DECLARE
 BEGIN
-    RETURN 'Not yet implemented' :: TEXT;
+  RETURN 'Not yet implemented' :: TEXT;
 END;
 $body$
 LANGUAGE 'plpgsql';

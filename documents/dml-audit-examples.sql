@@ -9,6 +9,7 @@ SELECT * from _pg_dml_audit_api.watched_tables();
 SELECT * from _pg_dml_audit_api.active_tables();
 
 
+
 SELECT _pg_dml_audit_api.ignore_table('ae_a');
 SELECT _pg_dml_audit_api.ignore_table('ae_b');
 SELECT _pg_dml_audit_api.ignore_table('ae_c');
@@ -81,7 +82,6 @@ INSERT INTO ae_c (test_key, test_value) VALUES
   ('614e8c8587e96a751d8b02dfcd602fe2', 'Nulla posuere urna magna,     '),
   ('83c409b15efa02e49774f83bc782d002', 'et vestibulum leo interdum eu.');
 
-
 UPDATE ae_c
 SET test_key = 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
 WHERE test_key = 'd75b9066192929d86983fc46ccff0125';
@@ -99,7 +99,8 @@ SELECT * FROM _pg_dml_audit_model.events;
 
 select _pg_dml_audit_api.report_events_table('[2016-04-18,2016-04-18]'::DATERANGE);
 select _pg_dml_audit_api.report_events_table('public.ae_b', '[2016-04-18,2016-04-18]'::DATERANGE);
-select _pg_dml_audit_api.report_events_table('ae_b');
+select _pg_dml_audit_api.report_events_table();
+
 
 
 
