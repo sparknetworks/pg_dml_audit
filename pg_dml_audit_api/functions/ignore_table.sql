@@ -4,12 +4,12 @@
 -- set search_path to _pg_dml_audit_api;
 --
 
-CREATE OR REPLACE FUNCTION ignore_table(target_table REGCLASS)
+CREATE OR REPLACE FUNCTION ignore_table(tableident REGCLASS)
   RETURNS VOID AS $body$
 DECLARE
 BEGIN
-  EXECUTE 'DROP TRIGGER IF EXISTS audit_trigger_row ON ' || target_table;
-  EXECUTE 'DROP TRIGGER IF EXISTS audit_trigger_stm ON ' || target_table;
+  EXECUTE 'DROP TRIGGER IF EXISTS audit_trigger_row ON ' || tableident;
+  EXECUTE 'DROP TRIGGER IF EXISTS audit_trigger_stm ON ' || tableident;
 END;
 $body$
 LANGUAGE 'plpgsql';

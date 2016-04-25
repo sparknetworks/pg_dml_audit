@@ -1,10 +1,10 @@
 --
 -- select events based on recorded changes
--- set search_path to _pg_dml_audit_api, pg_catalog;
+--  set search_path to _pg_dml_audit_api, pg_catalog;
 --
 
-CREATE OR REPLACE FUNCTION report_on_attribute_table(attrdetail TEXT, tableident TEXT DEFAULT NULL,
-                                                     timeframe  DATERANGE DEFAULT NULL)
+CREATE OR REPLACE FUNCTION report_attribute(kvlist    TEXT, tableident TEXT DEFAULT NULL,
+                                            timeframe DATERANGE DEFAULT NULL)
   RETURNS SETOF _pg_dml_audit_model.events AS $body$
 DECLARE
   query_text TEXT;
@@ -13,9 +13,10 @@ DECLARE
   l_relname  TEXT;
 BEGIN
 
-  query_text := 'WITH subq AS (SELECT nspname, relname, usename, trans_ts, trans_id, trans_sq, operation, CASE WHEN
-      jsonb_typeof(rowdata) = ''array'' THEN jsonb_array_elements(rowdata)  ELSE rowdata END AS singlerow FROM
-      _pg_dml_audit_model.events WHERE TRUE ';
+  query_text := 'WITH subq AS (
+                   SELECT nspname, relname, usename, trans_ts, trans_id, trans_sq, operation,
+                          jsonb_array_elements(rowdata) AS singlerow
+                   FROM _pg_dml_audit_model.events WHERE TRUE ';
 
   IF timeframe IS NOT NULL
   THEN
@@ -39,10 +40,10 @@ BEGIN
   query_text := query_text || ') SELECT nspname, relname, usename, trans_ts, trans_id, trans_sq, operation' ||
                 ', singlerow from subq WHERE TRUE ';
 
-  IF attrdetail IS NOT NULL
+  IF kvlist IS NOT NULL
   THEN
     query_text := query_text || ' AND ( singlerow @> '
-                  || quote_literal(json_build_object(split_part(attrdetail, ':', 1), split_part(attrdetail, ':', 2)))
+                  || quote_literal(json_build_object(split_part(kvlist, ':', 1), split_part(kvlist, ':', 2)))
                   || '::jsonb) ';
   END IF;
 
@@ -51,7 +52,7 @@ BEGIN
 
 END $body$ LANGUAGE 'plpgsql';
 
-COMMENT ON FUNCTION report_on_attribute_table(TEXT, TEXT, DATERANGE) IS $$
+COMMENT ON FUNCTION report_attribute(TEXT, TEXT, DATERANGE) IS $$
 Return changes filtered by Column/Value pairs.
 Result is a tabel with all changes on rows containing the given pair of
 column name and field value.

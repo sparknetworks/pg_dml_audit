@@ -1,9 +1,9 @@
 --
 -- return selected rows from events-table as tabel or json object
--- set search_path to _pg_dml_audit_api, pg_catalog;
+-- SET search_path TO _pg_dml_audit_api, pg_catalog;
 --
 
-CREATE OR REPLACE FUNCTION report_events_table(tablename TEXT DEFAULT NULL, timeframe DATERANGE DEFAULT NULL)
+CREATE OR REPLACE FUNCTION report_events(tableident REGCLASS DEFAULT NULL, timeframe DATERANGE DEFAULT NULL)
   RETURNS SETOF _pg_dml_audit_model.events AS $body$
 DECLARE
   query_text TEXT;
@@ -19,16 +19,16 @@ BEGIN
     query_text := query_text || ' AND trans_ts::date <@  ' || quote_literal(timeframe) || '::daterange ';
   END IF;
 
-  IF tablename IS NOT NULL
+  IF tableident IS NOT NULL
   THEN
     l_nspname := (SELECT nspname
                   FROM pg_namespace
                   WHERE OID = (SELECT relnamespace
                                FROM pg_class
-                               WHERE OID = tablename :: REGCLASS));
+                               WHERE OID = tableident::REGCLASS));
     l_relname := (SELECT relname
                   FROM pg_class
-                  WHERE OID = tablename :: REGCLASS);
+                  WHERE OID = tableident::REGCLASS);
 
     query_text :=query_text || 'AND _pg_dml_audit_model.events.nspname = ' || quote_literal(l_nspname) ||
                  ' AND _pg_dml_audit_model.events.relname =  ' || quote_literal(l_relname);
@@ -40,7 +40,7 @@ END;
 $body$
 LANGUAGE 'plpgsql';
 
-COMMENT ON FUNCTION report_events_table(TEXT, DATERANGE) IS $$
+COMMENT ON FUNCTION report_events(REGCLASS, DATERANGE) IS $$
 Return (filtered) audit-trail as table.
 
 Arguments:
@@ -49,49 +49,17 @@ Arguments:
 $$;
 
 
-CREATE OR REPLACE FUNCTION report_events_table(timeframe DATERANGE, tablename TEXT DEFAULT NULL)
+CREATE OR REPLACE FUNCTION report_events(timeframe DATERANGE, tableident REGCLASS DEFAULT NULL)
   RETURNS SETOF _pg_dml_audit_model.events AS $body$
 
 SELECT *
-FROM _pg_dml_audit_api.report_events_table(tablename, timeframe)
+FROM _pg_dml_audit_api.report_events(tableident, timeframe)
 
 $body$
 LANGUAGE 'sql';
 
-COMMENT ON FUNCTION report_events_table(DATERANGE, TEXT) IS $$
-Reverse arguments wrapper for report_events_table(TEXT, DATERANGE)
+COMMENT ON FUNCTION report_events(DATERANGE, REGCLASS) IS $$
+Reverse arguments wrapper for report_events(TEXT, DATERANGE)
 $$;
 
 
-CREATE OR REPLACE FUNCTION report_events_json(tablename TEXT DEFAULT NULL, timeframe DATERANGE DEFAULT NULL)
-  RETURNS JSON AS $body$
-DECLARE
-  event_row  _pg_dml_audit_model.events;
-  result_set JSON [] := '{}';
-BEGIN
-  FOR event_row IN SELECT *
-                   FROM _pg_dml_audit_api.report_events_table(tablename, timeframe) LOOP
-    result_set = result_set || to_json(event_row);
-  END LOOP;
-  RETURN to_json(result_set);
-END;
-$body$
-LANGUAGE 'plpgsql';
-
-COMMENT ON FUNCTION report_events_json(TEXT, DATERANGE) IS $$
-Return result of report_events_table(TEXT, DATERANGE) as json object
-$$;
-
-
-CREATE OR REPLACE FUNCTION report_events_json(timeframe DATERANGE, tablename TEXT DEFAULT NULL)
-  RETURNS JSON AS $body$
-
-SELECT *
-FROM _pg_dml_audit_api.report_events_json(tablename, timeframe)
-
-$body$
-LANGUAGE 'sql';
-
-COMMENT ON FUNCTION report_events_json(DATERANGE, TEXT) IS $$
-Reverse arguments wrapper for report_events_json(TEXT, DATERANGE)
-$$;

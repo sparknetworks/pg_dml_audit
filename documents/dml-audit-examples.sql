@@ -3,39 +3,33 @@
 -- set up test tables with auditdb-example sql.
 
 set search_path to public, pg_catalog;
+set LOG_MIN_MESSAGES to debug;
 
 
-SELECT * from _pg_dml_audit_api.watched_tables();
 SELECT * from _pg_dml_audit_api.active_tables();
 
+SELECT _pg_dml_audit_api.ignore_table('dml_audit_test_a');
+SELECT _pg_dml_audit_api.ignore_table('dml_audit_test_b');
+SELECT _pg_dml_audit_api.ignore_table('dml_audit_test_c');
+
+-- TRUNCATE _pg_dml_audit_model.events;
+TRUNCATE dml_audit_test_a CASCADE;
+TRUNCATE dml_audit_test_b;
+TRUNCATE dml_audit_test_c;
+
+SELECT _pg_dml_audit_api.watch_table('dml_audit_test_a');
+SELECT _pg_dml_audit_api.watch_table('dml_audit_test_b');
+SELECT _pg_dml_audit_api.watch_table('dml_audit_test_c');
 
 
-SELECT _pg_dml_audit_api.ignore_table('ae_a');
-SELECT _pg_dml_audit_api.ignore_table('ae_b');
-SELECT _pg_dml_audit_api.ignore_table('ae_c');
-SELECT _pg_dml_audit_api.ignore_table('tmp.temp_a');
-
-
-
-
-TRUNCATE _pg_dml_audit_model.events;
-TRUNCATE ae_a CASCADE;
-TRUNCATE ae_b;
-TRUNCATE ae_c;
-TRUNCATE tmp.temp_a;
-
-SELECT _pg_dml_audit_api.watch_table('ae_a');
-SELECT _pg_dml_audit_api.watch_table('ae_b');
-SELECT _pg_dml_audit_api.watch_table('ae_c');
-SELECT _pg_dml_audit_api.watch_table('tmp.temp_a');
-
-
-INSERT INTO ae_a (a_text, a_number, a_decimal) VALUES
+INSERT INTO dml_audit_test_a (a_text, a_number, a_decimal) VALUES
   ('Lorem', 382, 223.93992),
   ('ipsum', 50, 621),
   ('dolor', 479, 934.924255611),
   ('sit', 722, 63.491),
   ('amet.', 173, 649.2900000);
+
+SELECT * from _pg_dml_audit_api.report_events();
 
 SELECT _pg_dml_audit_api.ignore_table('ae_a');
 
@@ -68,9 +62,9 @@ INSERT INTO ae_b (a_text, a_date, a_time) VALUES
   ('ipsum', '1934-01-11' :: DATE, '03:55' :: TIME);
 
 
-TRUNCATE ae_c; -- truncate empty tabel results in event entry with no rows
+TRUNCATE "public.dml_audit_test_c"; -- truncate empty tabel results in event entry with no rows
 
-INSERT INTO ae_c (test_key, test_value) VALUES
+INSERT INTO "public.dml_audit_test_c" (test_key, test_value) VALUES
   ('d0ccb29413dc0dda46a58cd68b601349', 'Lorem ipsum dolor sit amet,   '),
   ('306dba61ebc32ab098a9d4adc38a3a7d', 'consectetur adipiscing elit.  '),
   ('498de31b4b9fbe3bdb16247ce8859ef4', 'Sed et tempor erat.           '),
@@ -82,14 +76,14 @@ INSERT INTO ae_c (test_key, test_value) VALUES
   ('614e8c8587e96a751d8b02dfcd602fe2', 'Nulla posuere urna magna,     '),
   ('83c409b15efa02e49774f83bc782d002', 'et vestibulum leo interdum eu.');
 
-UPDATE ae_c
+UPDATE "public.dml_audit_test_c"
 SET test_key = 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
 WHERE test_key = 'd75b9066192929d86983fc46ccff0125';
 
-DELETE FROM ae_c
+DELETE FROM "public.dml_audit_test_c"
 WHERE test_key = '92dcc301ec35ed74eaaf68978fc56b94';
 
-DELETE FROM ae_c;
+DELETE FROM "public.dml_audit_test_c";
 
 SELECT _pg_dml_audit_api.ignore_table('ae_c');
 SELECT _pg_dml_audit_api.ignore_table('ae_b');
@@ -97,9 +91,12 @@ SELECT _pg_dml_audit_api.ignore_table('ae_b');
 SELECT * FROM _pg_dml_audit_model.events;
 
 
-select _pg_dml_audit_api.report_events_table('[2016-04-18,2016-04-18]'::DATERANGE);
-select _pg_dml_audit_api.report_events_table('public.ae_b', '[2016-04-18,2016-04-18]'::DATERANGE);
-select _pg_dml_audit_api.report_events_table();
+select * from _pg_dml_audit_api.report_events('[2016-04-25,2016-04-25]'::DATERANGE);
+select * from _pg_dml_audit_api.report_events('dml_audit_test_a'::REGCLASS);
+select * from _pg_dml_audit_api.report_events();
+
+
+select * from _pg_dml_audit_api.report_attribute('a_text:ipsum');
 
 
 

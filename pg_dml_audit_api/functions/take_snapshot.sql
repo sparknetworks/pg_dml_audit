@@ -3,7 +3,8 @@
 -- set search_path to _pg_dml_audit_api;
 --
 
-CREATE OR REPLACE FUNCTION take_snapshot(target_table REGCLASS)
+
+CREATE OR REPLACE FUNCTION take_snapshot(tableident REGCLASS)
   RETURNS VOID AS $body$
 DECLARE
   all_rows   JSON [] := '{}';
@@ -16,10 +17,10 @@ BEGIN
                           FROM pg_namespace
                           WHERE OID = (SELECT relnamespace
                                        FROM pg_class
-                                       WHERE OID = target_table));
+                                       WHERE OID = tableident));
   audit_row.relname   := (SELECT relname
                           FROM pg_class
-                          WHERE OID = target_table);
+                          WHERE OID = tableident);
   audit_row.usename = session_user;
   audit_row.trans_ts = transaction_timestamp();
   audit_row.trans_id = txid_current();
@@ -45,4 +46,3 @@ Arguments:
 Limitations:
    Maximum field size is 1TiByte.
 $body$;
-

@@ -1,6 +1,6 @@
 --
 -- save full tabel as json-array
-set search_path to _pg_dml_audit_api;
+-- SET search_path TO _pg_dml_audit_model;
 --
 CREATE OR REPLACE FUNCTION if_modified_func()
   RETURNS TRIGGER AS $body$
@@ -15,29 +15,29 @@ BEGIN
     RAISE EXCEPTION 'if_modified_func() may only run as an AFTER trigger';
   END IF;
 
-  audit_row.nspname   = TG_TABLE_SCHEMA :: TEXT;
-  audit_row.relname   = TG_TABLE_NAME :: TEXT;
-  audit_row.usename   = SESSION_USER :: TEXT;
-  audit_row.trans_ts  = transaction_timestamp();
-  audit_row.trans_id  = txid_current();
-  audit_row.trans_sq  = 1;
+  audit_row.nspname = TG_TABLE_SCHEMA :: TEXT;
+  audit_row.relname = TG_TABLE_NAME :: TEXT;
+  audit_row.usename = SESSION_USER :: TEXT;
+  audit_row.trans_ts = transaction_timestamp();
+  audit_row.trans_id = txid_current();
+  audit_row.trans_sq = 1;
   audit_row.operation = TG_OP;
-  audit_row.rowdata   = NULL;
+  audit_row.rowdata = NULL;
 
   IF (TG_OP = 'UPDATE')
   THEN
     audit_row.rowdata = array_to_json(ARRAY [row_to_json(OLD), row_to_json(NEW)]); -- save both rows
   ELSIF (TG_OP = 'DELETE')
     THEN
-      audit_row.rowdata = row_to_json(OLD); -- save old row
+      audit_row.rowdata = array_to_json(ARRAY [row_to_json(OLD)]); -- save old row
   ELSIF (TG_OP = 'INSERT')
     THEN
-      audit_row.rowdata = row_to_json(NEW); -- save new row
+      audit_row.rowdata = array_to_json(ARRAY [row_to_json(NEW)]); -- save new row
   ELSIF (TG_OP = 'TRUNCATE')
     THEN -- save all rows
       query_text = 'SELECT *  FROM ' || quote_ident(TG_TABLE_SCHEMA) || '.' || quote_ident(TG_TABLE_NAME);
       FOR anyrow IN EXECUTE query_text LOOP
-        all_rows =  all_rows || row_to_json(anyrow);
+        all_rows = all_rows || row_to_json(anyrow);
       END LOOP;
       audit_row.rowdata = array_to_json(all_rows);
   ELSE
@@ -48,7 +48,11 @@ BEGIN
   -- multiple events in the same transaction must be ordered
   LOOP
     BEGIN
-      INSERT INTO _pg_dml_audit_model.events VALUES (audit_row.*);
+      INSERT INTO _pg_dml_audit_model.events (
+        nspname, relname, usename, trans_ts, trans_id, trans_sq, operation, rowdata)
+      VALUES (
+        audit_row.nspname, audit_row.relname, audit_row.usename, audit_row.trans_ts, audit_row.trans_id,
+        audit_row.trans_sq, audit_row.operation, audit_row.rowdata);
       EXIT; -- successful insert
       EXCEPTION WHEN unique_violation
       THEN

@@ -1,8 +1,9 @@
 --
 -- journal of all changes to all audited tables
 -- set search_path to _pg_dml_audit_model;
+--
 
-CREATE TABLE events (
+CREATE TABLE IF NOT EXISTS events (
   nspname   TEXT        NOT NULL,
   relname   TEXT        NOT NULL,
   usename   TEXT        NOT NULL,
@@ -11,7 +12,7 @@ CREATE TABLE events (
   trans_sq  INTEGER     NOT NULL,
   operation op_types    NOT NULL,
   rowdata   JSONB,
-  CONSTRAINT events_pkey PRIMARY KEY (trans_ts, trans_id, trans_sq)  -- TODO: find optimal order
+  CONSTRAINT events_pkey PRIMARY KEY (trans_ts, trans_id, trans_sq)
 );
 
 REVOKE ALL ON events FROM PUBLIC;
@@ -19,7 +20,7 @@ REVOKE ALL ON events FROM PUBLIC;
 COMMENT ON TABLE  events IS 'History of auditable actions on audited tables, from audit.if_modified_func()';
 COMMENT ON COLUMN events.nspname   IS 'database schema name of the audited table';
 COMMENT ON COLUMN events.relname   IS 'name of the table changed by this event';
-COMMENT ON COLUMN events.usename   IS 'Session user whose statement caused the audited event'; -- TODO: is this what we need?
+COMMENT ON COLUMN events.usename   IS 'Session user whose statement caused the audited event';
 COMMENT ON COLUMN events.trans_ts  IS 'Transaction timestamp for tx in which audited event occurred (PK)';
 COMMENT ON COLUMN events.trans_id  IS 'Identifier of transaction that made the change. (PK)';
 COMMENT ON COLUMN events.trans_sq  IS 'make multi-row-transactions unique. (PK)';
