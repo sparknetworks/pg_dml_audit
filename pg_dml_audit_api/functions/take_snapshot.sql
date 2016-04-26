@@ -34,7 +34,9 @@ BEGIN
   END LOOP;
   audit_row.rowdata = array_to_json(all_rows);
   RAISE DEBUG 'take a snapshot';
-  INSERT INTO _pg_dml_audit_model.events VALUES (audit_row.*);
+  INSERT INTO _pg_dml_audit_model.events VALUES
+    (audit_row.nspname, audit_row.relname, audit_row.usename, audit_row.trans_ts, audit_row.trans_id,
+     audit_row.trans_sq, audit_row.operation, audit_row.rowdata);
 END;
 $body$
 LANGUAGE 'plpgsql';

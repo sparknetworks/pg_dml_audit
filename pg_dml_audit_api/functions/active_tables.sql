@@ -1,8 +1,7 @@
----
---- report on known tables
----
---  set search_path to _pg_dml_audit_api, pg_catalog;
---  select * from active_tables();
+--
+-- report on known tables
+-- set search_path to _pg_dml_audit_api, pg_catalog;
+--
 
 
 CREATE OR REPLACE FUNCTION active_tables()

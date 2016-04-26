@@ -1,4 +1,14 @@
+--
+-- set up tables and a trigger in schema public for
+-- testing dml_audit
+--
+
 SET LOG_MIN_MESSAGES TO DEBUG;
+
+SET ROLE edarling;
+
+
+-- remove all test ddl (the test makes permanent changes to your events-tabel!)
 
 DROP TRIGGER IF EXISTS dml_audit_test_before ON public.dml_audit_test_c;
 DROP FUNCTION IF EXISTS public.dml_audit_test_before();
@@ -7,29 +17,31 @@ DROP TABLE IF EXISTS public.dml_audit_test_b;
 DROP TABLE IF EXISTS public.dml_audit_test_a;
 
 
-CREATE TABLE public.dml_audit_test_a (
+-- set up three tables
+
+CREATE TABLE public.dml_audit_test_a (                     -- plain simple table
   a_text    TEXT PRIMARY KEY,
   a_number  INTEGER,
   a_decimal DECIMAL
 );
 
--- foreign key
-CREATE TABLE public.dml_audit_test_b (
+
+CREATE TABLE public.dml_audit_test_b (                     -- one with foreign key
   a_serial SERIAL PRIMARY KEY,
   a_text   TEXT NOT NULL  REFERENCES public.dml_audit_test_a (a_text) ON UPDATE CASCADE ON DELETE RESTRICT,
   a_date   DATE,
   a_time   TIME
 );
 
--- trigger and no primary
-CREATE TABLE public.dml_audit_test_c (
+
+CREATE TABLE public.dml_audit_test_c (                     -- with trigger but  no primary key
   test_key         CHARACTER VARYING(128) NOT NULL,
   test_value       TEXT,
   last_modified    TIMESTAMPTZ,
   last_modified_by NAME                   NOT NULL
 );
 
--- refresh timestamp foeld on update or insert
+-- simple trigger function  for testing
 CREATE FUNCTION public.dml_audit_test_before()
   RETURNS TRIGGER AS $BODY$
 DECLARE
@@ -42,6 +54,7 @@ BEGIN
   RETURN NEW;
 END $BODY$ LANGUAGE plpgsql;
 
+-- activate triigger
 CREATE TRIGGER dml_audit_test_before BEFORE INSERT OR UPDATE  ON public.dml_audit_test_c
   FOR EACH ROW EXECUTE PROCEDURE public.dml_audit_test_before();
 

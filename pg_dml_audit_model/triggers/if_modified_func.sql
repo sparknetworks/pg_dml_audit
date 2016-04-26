@@ -2,6 +2,7 @@
 -- save full tabel as json-array
 -- SET search_path TO _pg_dml_audit_model;
 --
+
 CREATE OR REPLACE FUNCTION if_modified_func()
   RETURNS TRIGGER AS $body$
 DECLARE
@@ -71,6 +72,6 @@ COMMENT ON FUNCTION if_modified_func() IS $body$
 Track changes to a table at the row level.
 Note that the user name logged is the login role for the session. The audit trigger
 cannot obtain the active role because it is reset by the SECURITY DEFINER invocation
-of the audit trigger its self.
+of the audit trigger itself.
 $body$;
 

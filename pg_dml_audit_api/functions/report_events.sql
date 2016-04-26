@@ -3,7 +3,7 @@
 -- SET search_path TO _pg_dml_audit_api, pg_catalog;
 --
 
-CREATE OR REPLACE FUNCTION report_events(tableident REGCLASS DEFAULT NULL, timeframe DATERANGE DEFAULT NULL)
+CREATE OR REPLACE FUNCTION report_events(tableident TEXT DEFAULT NULL, timeframe DATERANGE DEFAULT NULL)
   RETURNS SETOF _pg_dml_audit_model.events AS $body$
 DECLARE
   query_text TEXT;
@@ -21,15 +21,14 @@ BEGIN
 
   IF tableident IS NOT NULL
   THEN
-    l_nspname := (SELECT nspname
-                  FROM pg_namespace
-                  WHERE OID = (SELECT relnamespace
-                               FROM pg_class
-                               WHERE OID = tableident::REGCLASS));
-    l_relname := (SELECT relname
-                  FROM pg_class
-                  WHERE OID = tableident::REGCLASS);
-
+    IF strpos(tableident, '.') > 0
+    THEN
+      l_nspname := split_part(tableident, '.', 1);
+      l_relname := split_part(tableident, '.', 2);
+    ELSE
+      l_nspname := 'public';
+      l_relname := tableident;
+    END IF;
     query_text :=query_text || 'AND _pg_dml_audit_model.events.nspname = ' || quote_literal(l_nspname) ||
                  ' AND _pg_dml_audit_model.events.relname =  ' || quote_literal(l_relname);
   END IF;
@@ -40,7 +39,7 @@ END;
 $body$
 LANGUAGE 'plpgsql';
 
-COMMENT ON FUNCTION report_events(REGCLASS, DATERANGE) IS $$
+COMMENT ON FUNCTION report_events(TEXT, DATERANGE) IS $$
 Return (filtered) audit-trail as table.
 
 Arguments:
@@ -49,7 +48,7 @@ Arguments:
 $$;
 
 
-CREATE OR REPLACE FUNCTION report_events(timeframe DATERANGE, tableident REGCLASS DEFAULT NULL)
+CREATE OR REPLACE FUNCTION report_events(timeframe DATERANGE, tableident TEXT DEFAULT NULL)
   RETURNS SETOF _pg_dml_audit_model.events AS $body$
 
 SELECT *
@@ -58,7 +57,7 @@ FROM _pg_dml_audit_api.report_events(tableident, timeframe)
 $body$
 LANGUAGE 'sql';
 
-COMMENT ON FUNCTION report_events(DATERANGE, REGCLASS) IS $$
+COMMENT ON FUNCTION report_events(DATERANGE, TEXT) IS $$
 Reverse arguments wrapper for report_events(TEXT, DATERANGE)
 $$;
 

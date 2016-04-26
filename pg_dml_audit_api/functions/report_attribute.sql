@@ -25,14 +25,14 @@ BEGIN
 
   IF tableident IS NOT NULL
   THEN
-    l_nspname := (SELECT nspname
-                  FROM pg_namespace
-                  WHERE OID = (SELECT relnamespace
-                               FROM pg_class
-                               WHERE OID = tablename :: REGCLASS));
-    l_relname := (SELECT relname
-                  FROM pg_class
-                  WHERE OID = tablename :: REGCLASS);
+    IF strpos(tableident, '.') > 0
+    THEN
+      l_nspname := split_part(tableident, '.', 1);
+      l_relname := split_part(tableident, '.', 2);
+    ELSE
+      l_nspname := 'public';
+      l_relname := tableident;
+    END IF;
     query_text := query_text || 'AND nspname = ' || quote_literal(l_nspname) || ' AND events.relname =  '
                   || quote_literal(l_relname);
   END IF;
