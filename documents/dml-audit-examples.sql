@@ -30,7 +30,7 @@ INSERT INTO dml_audit_test_a (a_text, a_number, a_decimal) VALUES ('dolor', 479,
 INSERT INTO dml_audit_test_a (a_text, a_number, a_decimal) VALUES ('sit', 722, 63.491);
 INSERT INTO dml_audit_test_a (a_text, a_number, a_decimal) VALUES ('amet.', 173, 649.2900000);
 
--- SELECT * FROM _pg_dml_audit_api.report_events();
+-- SELECT * FROM _pg_dml_audit_api.report_events() order by trans_ts;
 
 SELECT _pg_dml_audit_api.ignore_table('dml_audit_test_a');
 
